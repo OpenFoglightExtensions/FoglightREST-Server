@@ -11,7 +11,7 @@ import de.dsg.foglight.rest.data.StatusData;
 import org.apache.wink.common.AbstractDynamicResource;
 import org.apache.wink.common.annotations.Workspace;
 import org.apache.wink.server.utils.RegistrationUtils;
-import org.jboss.resteasy.annotations.providers.jaxb.json.BadgerFish;
+
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -36,7 +36,7 @@ public class StatusAPI {
     @Produces(MediaType.APPLICATION_JSON)
     public StatusData getBooksBadger()
     {
-        return new StatusData(0,"Fine2!", "Overall Status is fine no Problems.")   ;
+        return new StatusData(0,"Fine!", "Overall Status is fine no Problems.")   ;
     }
 
     @GET
