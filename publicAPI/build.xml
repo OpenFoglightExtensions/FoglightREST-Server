@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Version 1.3
+    
+    There is nothing to edit in this file all user set up
+    is now in configuration.properties
+-->
+
+<project name="PublicAPI" basedir="." default="jar" >
+	
+	<!-- User configuration -->
+	<property file="${basedir}/configuration.properties"/>
+
+	<!-- these properties are filled in automagically -->
+	<property name="cartridge.carfile" value=""/>
+
+	<!-- build environment -->
+	<property name="fglant.dir" value="lib/fglant"/>
+	<property name="fglclient.dir" value="lib/client"/>
+	<property name="src.dir" value="src"/>
+	<property name="build.dir" value="build"/>
+	<property name="dist.dir" value="dist"/>
+	<property name="wcf.dir" value="wcf"/>
+	<property name="res.dir" value="${basedir}/res"/>
+    <property name="war.path" value="${basedir}/../war/dist/api.war"/>
+	<property environment="env"/>
+	
+	
+	<!-- set the timestamp -->
+	<tstamp/>
+        <property name="build.id" value="${DSTAMP}-${TSTAMP}"/>
+
+	<!-- Groovy script definition -->
+	<path id="groovy.path">
+		<fileset dir="${groovy.home}">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+	<taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy" classpathref="groovy.path"/>
+
+	
+	<target name="init">
+
+		<mkdir dir="${build.dir}"/>
+        <mkdir dir="${build.dir}/classes"/>
+        <mkdir dir="${build.dir}/classes-api"/>
+        <mkdir dir="${dist.dir}"/>
+		<mkdir dir="${wcf.dir}"/>
+		
+	
+		<!-- munge the version number -->
+		<groovy><![CDATA[
+			version = properties.get("cartridge.version");
+			name = properties.get("cartridge.name");
+			us = version.replace('.', '_');
+			println "munged version $us";
+			properties.put("cartridge.carfile", "${name}-${us}.car");
+		]]></groovy>
+		
+		<!-- define car task -->
+		<path id="fglant.path">
+			<fileset dir="${fglant.dir}">
+				<include name="*.jar"/>
+			</fileset>
+		</path>
+		<taskdef name="car" classname="com.quest.nitro.tools.ant.cartridge.Car" classpathref="fglant.path"/>
+	</target>
+
+    <target name="externalDeps" depends="init">
+        <ant antfile="${basedir}/../war/build.xml" target="war" dir="${basedir}/../war"/>
+
+
+    </target>
+
+
+    <target name="compile-api" depends="init,externalDeps">
+        <javac srcdir="${basedir}/src/java-api" target="6"  destdir="${build.dir}/classes-api" includes="**/*">
+            <classpath>
+                <fileset dir="${basedir}/lib/ext" includes="**/*.jar" />
+                <fileset dir="${basedir}/lib/buildlib" includes="**/*.jar" />
+                <fileset dir="${basedir}/lib/forgeDevkit" includes="**/*.jar" />
+                <fileset dir="${basedir}/../war/dist/" includes="api.jar"/>
+
+            </classpath>
+        </javac>
+
+
+    </target>
+
+    <target name="clean" description="Clean before rebuild">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+    </target>
+
+    <target name="jar" depends="compile-api">
+        <jar destfile="${dist.dir}/RestServerExtension-public.jar">
+            <zipfileset dir="${build.dir}/classes-api" includes="**/*"/>
+        </jar>
+    </target>
+
+
+
+</project>
